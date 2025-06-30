@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tutorial de Fotogrametría para Bambu Lab A1</title>
+    <!-- Carga de Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configuración de la fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Degradado de fondo vibrante */
+            background: linear-gradient(to bottom right, #e0f2fe, #d1c4e9); /* Azul claro a lila claro */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem 0;
+        }
+        .container {
+            max-width: 1000px;
+            width: 95%;
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* Bordes más redondeados */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* Sombra más pronunciada */
+            padding: 2.5rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+        h1, h2, h3 {
+            color: #4a00e0; /* Un púrpura más oscuro para los títulos */
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+        h1 {
+            font-size: 2.5rem; /* Título principal más grande */
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #311b92; /* Azul oscuro para el título principal */
+        }
+        h2 {
+            font-size: 2rem;
+            border-bottom: 2px solid #e0f2fe; /* Línea suave bajo los títulos de sección */
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
+        }
+        h3 {
+            font-size: 1.5rem;
+            color: #673ab7; /* Un púrpura intermedio para subtítulos */
+            margin-top: 1.5rem;
+        }
+        p {
+            line-height: 1.7;
+            margin-bottom: 1rem;
+            color: #333;
+        }
+        ul {
+            list-style-type: disc;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+        ol {
+            list-style-type: decimal;
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: #444;
+        }
+        li {
+            margin-bottom: 0.5rem;
+        }
+        .step-card {
+            background-color: #f8faff; /* Fondo ligeramente azulado para las tarjetas de paso */
+            border-radius: 1rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #e0e7ff; /* Borde sutil */
+        }
+        .icon {
+            display: inline-block;
+            margin-right: 0.5rem;
+            color: #8e24aa; /* Un púrpura más vibrante para los iconos */
+            font-size: 1.25rem;
+        }
+        .warning {
+            background-color: #fff3e0; /* Naranja claro para advertencias */
+            border-left: 5px solid #ff9800; /* Borde naranja */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #e65100; /* Texto naranja oscuro */
+        }
+        .tip {
+            background-color: #e8f5e9; /* Verde claro para consejos */
+            border-left: 5px solid #4caf50; /* Borde verde */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: #2e7d32; /* Texto verde oscuro */
+        }
+        .llm-feature {
+            background-color: #e3f2fd; /* Azul muy claro para la sección LLM */
+            border-radius: 1rem;
+            padding: 2rem;
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            border: 1px solid #90caf9; /* Borde azul */
+        }
+        .llm-feature h2 {
+            color: #1a237e; /* Azul oscuro para el título del LLM */
+            border-bottom-color: #bbdefb;
+        }
+        .llm-feature textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            border: 1px solid #a7d9f7;
+            margin-bottom: 1rem;
+            font-size: 1rem;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .llm-feature button {
+            background-color: #673ab7; /* Púrpura para el botón */
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: background-color 0.3s ease;
+            cursor: pointer;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .llm-feature button:hover {
+            background-color: #5e35b1; /* Púrpura más oscuro al pasar el ratón */
+        }
+        .llm-response {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-top: 1.5rem;
+            border: 1px solid #cfd8dc;
+            min-height: 50px;
+            color: #333;
+            line-height: 1.6;
+        }
+        .loading-spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #673ab7;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            margin-left: 0.5rem;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Guía Completa: De la Pieza Física a la Impresión 3D con Bambu Lab A1</h1>
+
+        <p class="text-lg text-center mb-8 text-gray-700">
+            ¡Hola! Soy tu experto en impresión 3D. Te guiaré paso a paso para que puedas convertir esa pieza física que tienes en un modelo 3D imprimible con tu Bambu Lab A1. Este proceso se llama **fotogrametría**, y aunque Bambu Lab Studio no tiene una herramienta de fotogrametría integrada, usaremos software externo para crear el modelo 3D a partir de tus fotos y luego lo prepararemos en Bambu Lab Studio. ¡Vamos a ello!
+        </p>
+
+        <!-- Paso 1: Preparación de las fotografías -->
+        <div class="step-card">
+            <h2><span class="icon">📸</span> Paso 1: Preparación de las Fotografías</h2>
+            <p>Este es el paso más crítico para obtener un buen modelo 3D. ¡La calidad de tus fotos determinará la calidad de tu impresión!</p>
+
+            <h3>Requisitos Técnicos para las Fotografías:</h3>
+            <ul>
+                <li><span class="icon">🔢</span> <strong>Cantidad:</strong> Necesitarás <strong>muchas fotos</strong>, al menos 50-100 para una pieza simple, y más de 200 para objetos complejos. Cuantas más fotos, mejor.</li>
+                <li><span class="icon">📐</span> <strong>Ángulos:</strong>
+                    <ul>
+                        <li><strong>Cobertura total:</strong> Asegúrate de capturar cada parte de la pieza desde múltiples ángulos.</li>
+                        <li><strong>Solapamiento:</strong> Cada foto debe solaparse con las anteriores en al menos un 60-80%. Imagina que estás pintando la pieza con tu cámara, sin dejar ningún hueco.</li>
+                        <li><strong>Movimiento constante:</strong> Mantén la cámara a una distancia constante y gírala alrededor del objeto, o gira el objeto y mantén la cámara fija.</li>
+                        <li><strong>Desde arriba y desde abajo:</strong> No olvides tomar fotos de la parte superior e inferior de la pieza si es relevante.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">💡</span> <strong>Iluminación:</strong>
+                    <ul>
+                        <li><strong>Iluminación difusa y uniforme:</strong> Evita sombras duras o brillos excesivos. La luz natural de un día nublado o una caja de luz (lightbox) son ideales.</li>
+                        <li><strong>Sin reflejos:</strong> Los objetos brillantes o muy reflectantes son difíciles de escanear. Si tu pieza es así, puedes intentar aplicar un spray mate temporal o polvos talco.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">🖼️</span> <strong>Fondo:</strong>
+                    <ul>
+                        <li><strong>Fondo neutro y contrastado:</strong> Usa un fondo de color sólido que contraste con la pieza. Evita fondos con patrones o texturas.</li>
+                        <li><strong>Sin objetos en el fondo:</strong> Asegúrate de que no haya otros objetos en el encuadre.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">🔍</span> <strong>Enfoque:</strong> Todas las fotos deben estar perfectamente enfocadas en la pieza con suficiente profundidad de campo.</li>
+                <li><span class="icon"> tripod</span> <strong>Estabilidad:</strong> Es muy recomendable usar un trípode. Si mueves la cámara, hazlo suavemente.</li>
+            </ul>
+
+            <h3>Consejos Adicionales para las Fotos:</h3>
+            <ul class="tip">
+                <li><span class="icon">✨</span> <strong>Marcadores (opcional):</strong> Para piezas muy lisas, puedes pegar pequeños trozos de cinta adhesiva con un patrón irregular.</li>
+                <li><span class="icon">🚫</span> <strong>No muevas el objeto:</strong> Una vez que empiezas a tomar fotos, no muevas la pieza.</li>
+                <li><span class="icon">📸</span> <strong>Resolución alta:</strong> Usa la máxima resolución que te permita tu cámara.</li>
+            </ul>
+        </div>
+
+        <!-- Paso 2: Creación del modelo 3D con software de fotogrametría -->
+        <div class="step-card">
+            <h2><span class="icon">💻</span> Paso 2: Creación del Modelo 3D con Software de Fotogrametría</h2>
+            <p>Necesitarás un software externo para este paso. Te recomiendo empezar con una opción gratuita.</p>
+
+            <h3>Opciones de Software (Ejemplos):</h3>
+            <ul>
+                <li><strong>Gratuitas:</strong> Meshroom (Windows/Linux), Metashape Standard Edition (versión de prueba).</li>
+                <li><strong>De pago:</strong> Agisoft Metashape, RealityCapture, 3DF Zephyr.</li>
+            </ul>
+
+            <h3>Proceso General (válido para la mayoría de software):</h3>
+            <ol>
+                <li><span class="icon">➕</span> <strong>Importar fotografías:</strong> Carga todas las fotos que tomaste.</li>
+                <li><span class="icon">🔗</span> <strong>Alinear fotos/Crear nube de puntos dispersa:</strong> El software analizará las fotos y buscará puntos comunes.</li>
+                <li><span class="icon">☁️</span> <strong>Construir nube de puntos densa:</strong> Se generará una nube de puntos mucho más detallada.</li>
+                <li><span class="icon">🕸️</span> <strong>Crear malla 3D:</strong> El software construirá la superficie (malla) 3D de tu pieza.</li>
+                <li><span class="icon">🎨</span> <strong>Texturizar (opcional):</strong> Aplicar las texturas de las fotos a la malla.</li>
+                <li><span class="icon">✂️</span> <strong>Limpieza y edición (¡Importante!):</strong> Es crucial limpiar el modelo.
+                    <ul>
+                        <li><strong>Eliminar el fondo:</strong> Recorta todo lo que no sea tu pieza.</li>
+                        <li><strong>Cerrar agujeros:</strong> Cierra cualquier agujero en la malla para que el modelo sea "sólido" (manifold). ¡Crucial para la impresión 3D!</li>
+                        <li><strong>Simplificar la malla:</strong> Reduce el número de polígonos para facilitar su manejo.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">💾</span> <strong>Exportar el modelo 3D:</strong> Exporta el modelo en formato <strong>.STL</strong> o <strong>.OBJ</strong>. El .STL es el más común.</li>
+            </ol>
+
+            <div class="warning">
+                <h3><span class="icon">⚠️</span> Advertencias y Limitaciones de la Fotogrametría:</h3>
+                <ul>
+                    <li><strong>Objetos difíciles:</strong> No funciona bien con objetos transparentes, muy reflectantes, monocromáticos sin textura o muy finos/complejos.</li>
+                    <li><strong>Precisión:</strong> La precisión puede variar. No esperes una precisión de micras.</li>
+                    <li><strong>Tiempo de procesamiento:</strong> Puede llevar horas o días, dependiendo de tu ordenador y la complejidad.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Paso 3: Preparación del modelo en Bambu Lab Studio -->
+        <div class="step-card">
+            <h2><span class="icon">🖨️</span> Paso 3: Preparación del Modelo en Bambu Lab Studio</h2>
+            <p>Una vez que tengas tu archivo .STL o .OBJ limpio y listo, es hora de importarlo a Bambu Lab Studio.</p>
+
+            <ol>
+                <li><span class="icon">🚀</span> <strong>Abrir Bambu Lab Studio:</strong> Inicia el software.</li>
+                <li><span class="icon">⚙️</span> <strong>Seleccionar impresora y perfil:</strong>
+                    <ul>
+                        <li>Asegúrate de que <strong>Bambu Lab A1</strong> esté seleccionada en la esquina superior izquierda.</li>
+                        <li>Verifica que el <strong>filamento</strong> y el <strong>perfil de proceso</strong> (ej. 0.20mm Standard) sean los correctos.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">📂</span> <strong>Importar el modelo 3D:</strong>
+                    <ul>
+                        <li>Haz clic en <strong>"Archivo"</strong> > <strong>"Importar"</strong> > <strong>"Archivos"</strong>.</li>
+                        <li>Navega hasta tu archivo .STL o .OBJ y haz clic en <strong>"Abrir"</strong>.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">↔️</span> <strong>Posicionar y escalar el modelo:</strong>
+                    <ul>
+                        <li><strong>Mover:</strong> Usa el icono de las cuatro flechas para arrastrar o introducir valores X, Y, Z.</li>
+                        <li><strong>Escalar:</strong> Usa el icono del cubo con flechas. Escala proporcionalmente o desmarca "Bloquear Relación Z". ¡Asegúrate del tamaño correcto!</li>
+                        <li><strong>Rotar:</strong> Usa el icono de las flechas circulares. Posiciona el modelo de la forma más estable posible.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">🏗️</span> <strong>Añadir soportes (Supports):</strong>
+                    <ul>
+                        <li>Haz clic en el icono de <strong>"Soporte"</strong> (la "Y" invertida).</li>
+                        <li>Activa <strong>"Habilitar Soporte"</strong>.</li>
+                        <li>Elige <strong>"Normal (Auto)"</strong> o <strong>"Árbol (Auto)"</strong> y un <strong>"Patrón de Soporte"</strong>.</li>
+                        <li>Ajusta el <strong>"Ángulo de Umbral de Voladizo"</strong> (50-60 grados es común).</li>
+                    </ul>
+                </li>
+                <li><span class="icon">🩹</span> <strong>Adhesión a la placa (Bed Adhesion):</strong>
+                    <ul>
+                        <li>Haz clic en el icono de <strong>"Adhesión a la Placa"</strong> (el cuadrado con la flecha hacia abajo).</li>
+                        <li><strong>Brim</strong> es la opción más común para evitar el levantamiento. Puedes ajustar el ancho.</li>
+                        <li>Otras opciones: Skirt (purga), Raft (base completa).</li>
+                    </ul>
+                </li>
+                <li><span class="icon">📏</span> <strong>Ajustes de Calidad e Infill (Relleno):</strong>
+                    <ul>
+                        <li>Haz clic en la pestaña <strong>"Proceso"</strong>.</li>
+                        <li><strong>Calidad:</strong>
+                            <ul>
+                                <li><strong>Altura de Capa:</strong> 0.20mm es un buen equilibrio. Para más detalle: 0.16mm; para más rápido: 0.28mm.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Capas y Perímetros:</strong>
+                            <ul>
+                                <li><strong>Perímetros (Walls):</strong> 2 o 3 suelen ser suficientes.</li>
+                                <li><strong>Capas Superiores/Inferiores:</strong> 3 a 5 capas suelen ser adecuadas.</li>
+                            </ul>
+                        </li>
+                        <li><strong>Infill (Relleno):</strong>
+                            <ul>
+                                <li><strong>Densidad de Relleno:</strong> 10-20% para decorativo, 30-50%+ para funcional.</li>
+                                <li><strong>Patrón de Relleno:</strong> "Grid", "Honeycomb", "Gyroid".</li>
+                            </ul>
+                        </li>
+                    </ul>
+                </li>
+                <li><span class="icon">🔪</span> <strong>Rebanar el modelo (Slice Plate):</strong>
+                    <ul>
+                        <li>Haz clic en el botón <strong>"Rebanar placa"</strong> en la parte superior derecha.</li>
+                        <li>Se mostrará una vista previa capa por capa.</li>
+                    </ul>
+                </li>
+                <li><span class="icon">✅</span> <strong>Verificación del modelo rebanado:</strong>
+                    <ul>
+                        <li>Arrastra el deslizador vertical para ver la construcción.</li>
+                        <li>Verifica soportes, huecos, perímetros, relleno y adhesión.</li>
+                        <li>Revisa el tiempo estimado y el material.</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <!-- Paso 4: Envío del proyecto a la impresora Bambu Lab A1 -->
+        <div class="step-card">
+            <h2><span class="icon">📤</span> Paso 4: Envío del Proyecto a la Impresora Bambu Lab A1</h2>
+            <p>Si todo se ve bien en la vista previa, ¡estás listo para enviar el trabajo!</p>
+            <ol>
+                <li><span class="icon">▶️</span> <strong>Enviar a la impresora (Print Plate):</strong>
+                    <ul>
+                        <li>Haz clic en el botón <strong>"Imprimir placa"</strong> en la esquina superior derecha.</li>
+                        <li>Asegúrate de que tu <strong>Bambu Lab A1</strong> esté seleccionada y conectada.</li>
+                        <li>Haz clic en <strong>"Iniciar Impresión"</strong>.</li>
+                    </ul>
+                </li>
+            </ol>
+        </div>
+
+        <!-- Paso 5: Iniciando la impresión en tu Bambu Lab A1 -->
+        <div class="step-card">
+            <h2><span class="icon">🚀</span> Paso 5: Iniciando la Impresión en tu Bambu Lab A1</h2>
+            <p>Una vez que el archivo se ha enviado, la impresora comenzará su proceso:</p>
+            <ol>
+                <li><span class="icon">🌡️</span> <strong>Calentamiento:</strong> La A1 calentará la cama y la boquilla.</li>
+                <li><span class="icon">🔧</span> <strong>Calibración (si es necesario):</strong> Puede realizar autonivelación o calibración de flujo.</li>
+                <li><span class="icon">💧</span> <strong>Purga:</strong> Extruirá un poco de filamento.</li>
+                <li><span class="icon">✨</span> <strong>¡Impresión!</strong> Comenzará a imprimir tu pieza.</li>
+            </ol>
+        </div>
+
+        <!-- Nueva sección: Herramienta de Asistencia de Laminado con IA -->
+        <div class="llm-feature">
+            <h2><span class="icon">🧠</span> Herramienta de Asistencia de Laminado con IA ✨</h2>
+            <p>¿Tienes dudas sobre algún parámetro de laminado en Bambu Lab Studio? Pregúntale a nuestra IA y obtén una explicación detallada.</p>
+            <textarea id="llm-input" placeholder="Ej: ¿Qué es la altura de capa? ¿Cuándo usar Brim? ¿Qué es el infill y para qué sirve?"></textarea>
+            <button id="llm-button">Obtener Explicación ✨ <div id="loading-spinner" class="loading-spinner"></div></button>
+            <div id="llm-response" class="llm-response">La explicación aparecerá aquí.</div>
+        </div>
+
+        <!-- Consejos para optimizar la calidad -->
+        <div class="tip">
+            <h2><span class="icon">💡</span> Consejos para Optimizar la Calidad del Modelo 3D Resultante:</h2>
+            <ul>
+                <li><span class="icon">⏳</span> <strong>Paciencia en la fotogrametría:</strong> Dedica tiempo a la toma de fotos. Es el factor más importante.</li>
+                <li><span class="icon">🧹</span> <strong>Limpieza del modelo:</strong> No subestimes la importancia de limpiar y reparar el modelo 3D después de la fotogrametría.</li>
+                <li><span class="icon">🔄</span> <strong>Orientación de la pieza:</strong> Imprime la pieza en una orientación que minimice los soportes y aproveche la resistencia.</li>
+                <li><span class="icon">🧪</span> <strong>Pruebas de impresión:</strong> Para piezas complejas, imprime una versión más pequeña o una sección crítica.</li>
+                <li><span class="icon">🛠️</span> <strong>Mantenimiento de la impresora:</strong> Asegúrate de que tu Bambu Lab A1 esté bien calibrada, la placa limpia y el filamento seco.</li>
+            </ul>
+        </div>
+
+        <p class="text-lg text-center mt-8 text-gray-700">
+            ¡Con estas instrucciones detalladas, deberías poder transformar tus piezas físicas en modelos 3D imprimibles! ¡Espero que disfrutes del proceso y de los resultados con tu Bambu Lab A1!
+        </p>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const llmInput = document.getElementById('llm-input');
+            const llmButton = document.getElementById('llm-button');
+            const llmResponse = document.getElementById('llm-response');
+            const loadingSpinner = document.getElementById('loading-spinner');
+
+            llmButton.addEventListener('click', async () => {
+                const prompt = llmInput.value.trim();
+                if (!prompt) {
+                    llmResponse.textContent = "Por favor, introduce una pregunta.";
+                    return;
+                }
+
+                llmResponse.textContent = "Generando explicación...";
+                loadingSpinner.style.display = 'inline-block'; // Show spinner
+
+                try {
+                    let chatHistory = [];
+                    // Contexto para el LLM: se especializa en impresión 3D y Bambu Lab
+                    chatHistory.push({ role: "user", parts: [{ text: `Eres un experto técnico especializado en impresión 3D y específicamente en el ecosistema de impresoras Bambu Lab. Explica el siguiente concepto de impresión 3D o parámetro de laminado de forma clara y concisa, como si hablaras con un principiante: "${prompt}"` }] });
+                    
+                    const payload = { contents: chatHistory };
+                    const apiKey = ""; // La API Key se proporciona automáticamente en el entorno Canvas
+                    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const result = await response.json();
+
+                    if (result.candidates && result.candidates.length > 0 &&
+                        result.candidates[0].content && result.candidates[0].content.parts &&
+                        result.candidates[0].content.parts.length > 0) {
+                        const text = result.candidates[0].content.parts[0].text;
+                        llmResponse.textContent = text;
+                    } else {
+                        llmResponse.textContent = "No se pudo obtener una explicación. Inténtalo de nuevo.";
+                        console.error("Respuesta inesperada de la API de Gemini:", result);
+                    }
+                } catch (error) {
+                    llmResponse.textContent = "Ocurrió un error al conectar con la IA. Por favor, inténtalo más tarde.";
+                    console.error("Error al llamar a la API de Gemini:", error);
+                } finally {
+                    loadingSpinner.style.display = 'none'; // Hide spinner
+                }
+            });
+        });
+    </script>
+</body>
+</html>
