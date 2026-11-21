@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tutorial: preparar una impresión con la Bambu Lab A1 mini</title>
+<style>
+  /* ===== Colores y tipografía generales ===== */
+  :root{
+    --fondo:#f4f6f8; --tarjeta:#ffffff; --texto:#1c2430; --suave:#4a5566;
+    --verde:#00a33c; --verde-osc:#007a2d; --azul:#1f5fbf; --aviso:#fff4d6;
+    --borde:#d3dae3; --mal:#c62828; --bien-fondo:#e6f6ea; --mal-fondo:#fdeaea;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--fondo);color:var(--texto);
+       font-family:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;
+       font-size:21px;line-height:1.55}
+  .contenedor{max-width:860px;margin:0 auto;padding:16px}
+
+  /* ===== Cabecera y barra de progreso ===== */
+  header{background:var(--verde-osc);color:#fff;border-radius:14px;padding:16px 20px}
+  header h1{margin:0;font-size:1.35em}
+  header p{margin:4px 0 0;font-size:.9em;opacity:.95}
+  .progreso{margin:16px 0 8px;font-weight:700;font-size:1.05em}
+  .barra{height:14px;background:#dfe5ec;border-radius:8px;overflow:hidden}
+  .barra div{height:100%;background:var(--verde);width:0;transition:width .3s}
+
+  /* ===== Tarjeta de cada paso ===== */
+  .paso{display:none;background:var(--tarjeta);border:1px solid var(--borde);
+        border-radius:14px;padding:20px;margin-top:14px}
+  .paso.activo{display:block}
+  .paso h2{margin-top:0;font-size:1.3em;display:flex;gap:10px;align-items:center}
+  .icono{font-size:1.6em}
+  .nota{background:var(--aviso);border-left:6px solid #e0a800;padding:12px 14px;border-radius:8px;margin:14px 0}
+  .ruta{background:#eef3fb;border-radius:8px;padding:10px 14px;font-weight:600}
+  kbd{background:#eee;border:1px solid #bbb;border-radius:5px;padding:1px 7px;font-family:inherit}
+
+  /* ===== Botones ===== */
+  button{font:inherit;cursor:pointer;border-radius:12px;min-height:56px;padding:10px 20px;border:2px solid transparent}
+  .btn-principal{background:var(--verde);color:#fff}
+  .btn-principal:hover{background:var(--verde-osc)}
+  .btn-secundario{background:#fff;color:var(--texto);border-color:var(--borde)}
+  .btn-azul{background:var(--azul);color:#fff}
+  button:focus-visible,select:focus-visible,input:focus-visible{outline:4px solid #ffbf00;outline-offset:2px}
+  button:disabled{opacity:.45;cursor:not-allowed}
+  .navegacion{display:flex;justify-content:space-between;gap:12px;margin:18px 0 30px}
+  .navegacion button{flex:1}
+
+  /* ===== Simulación de la pantalla de Bambu Studio ===== */
+  .simulador{border:2px solid #9aa6b5;border-radius:10px;overflow:hidden;margin:14px 0;background:#fafbfc}
+  .sim-barra{background:#2b3440;color:#fff;padding:8px 12px;font-size:.8em;display:flex;gap:16px;flex-wrap:wrap;align-items:center}
+  .sim-barra .pestana{padding:4px 10px;border-radius:6px}
+  .sim-barra .pestana.on{background:var(--verde)}
+  .sim-cuerpo{padding:14px}
+  .placa{position:relative;height:190px;background:repeating-linear-gradient(45deg,#3a3f47,#3a3f47 10px,#41464f 10px,#41464f 20px);
+         border-radius:8px;display:flex;align-items:center;justify-content:center;color:#cfd6df;font-size:.85em}
+  .pieza{width:90px;height:60px;background:#7fd18f;border:3px solid #2f8f46;border-radius:6px;transition:transform .5s;display:flex;align-items:center;justify-content:center;color:#123;font-weight:700}
+  label{display:block;font-weight:600;margin:12px 0 4px}
+  select,input[type=text]{font:inherit;width:100%;min-height:52px;padding:8px;border:2px solid var(--borde);border-radius:10px;background:#fff}
+  .comprobar{margin-top:14px}
+  .resultado{margin-top:12px;padding:12px;border-radius:8px;display:none}
+  .resultado.bien{display:block;background:var(--bien-fondo);border-left:6px solid var(--verde)}
+  .resultado.mal{display:block;background:var(--mal-fondo);border-left:6px solid var(--mal)}
+  .fila-botones{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px}
+  .opcion{display:flex;gap:12px;align-items:center;padding:10px;border:1px solid var(--borde);border-radius:10px;margin:8px 0;background:#fff}
+  .opcion input{width:30px;height:30px;flex-shrink:0}
+  .opcion label{margin:0;font-weight:400}
+  .cargando{height:14px;background:#dfe5ec;border-radius:8px;overflow:hidden;margin-top:10px}
+  .cargando div{height:100%;width:0;background:var(--azul);transition:width 1.6s linear}
+  .datos{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px;margin-top:12px}
+  .dato{background:#eef3fb;border-radius:8px;padding:10px;text-align:center}
+  .dato b{display:block;font-size:1.2em}
+  ul.lista li{margin-bottom:8px}
+
+  @media (max-width:560px){
+    body{font-size:20px}
+    .navegacion{flex-direction:column-reverse}
+  }
+</style>
+</head>
+<body>
+<div class="contenedor">
+
+  <!-- ===== Cabecera ===== -->
+  <header>
+    <h1>🖨️ Preparar una impresión 3D</h1>
+    <p>Bambu Lab A1 mini + programa Bambu Studio (en el ordenador)</p>
+  </header>
+
+  <div class="progreso" id="textoPaso" aria-live="polite">Paso 1 de 8</div>
+  <div class="barra" aria-hidden="true"><div id="barra"></div></div>
+
+  <!-- ===== PASO 1: Qué vamos a hacer ===== -->
+  <section class="paso activo" data-titulo="Bienvenida">
+    <h2><span class="icono">👋</span> ¿Qué vamos a hacer?</h2>
+    <p>Hola, Toño. Para imprimir, el ordenador tiene que «traducir» el dibujo 3D a instrucciones que la impresora entienda. A eso se le llama <b>laminar</b>: el programa corta la pieza en capas finísimas, como las lonchas de un embutido. 🥓</p>
+    <p>El camino completo tiene 4 partes:</p>
+    <ol>
+      <li>📂 <b>Abrir</b> el modelo en Bambu Studio.</li>
+      <li>⚙️ <b>Elegir</b> impresora, placa y filamento.</li>
+      <li>🔪 <b>Laminar</b> (cortar en capas).</li>
+      <li>📡 <b>Enviar</b> a la impresora por wifi o con la tarjeta microSD.</li>
+    </ol>
+    <div class="nota">💡 Aquí todo es una <b>simulación para practicar</b>. Ningún botón de esta página toca tu impresora de verdad.</div>
+  </section>
+
+  <!-- ===== PASO 2: Abrir el modelo ===== -->
+  <section class="paso" data-titulo="Abrir el modelo">
+    <h2><span class="icono">📂</span> Abrir el modelo 3D</h2>
+    <p>Los modelos suelen ser archivos que terminan en <b>.stl</b> o <b>.3mf</b> (por ejemplo, los que bajas de MakerWorld).</p>
+    <p>Hay dos formas de abrirlo en Bambu Studio:</p>
+    <ul class="lista">
+      <li>🖱️ <b>Arrastrar</b> el archivo desde la carpeta hasta la ventana del programa.</li>
+      <li>⌨️ Menú <span class="ruta">Archivo → Importar → Importar 3MF/STL…</span> o el atajo <kbd>Ctrl</kbd> + <kbd>I</kbd>.</li>
+    </ul>
+    <p><b>Practica:</b> ¿cuál de estos archivos se puede abrir para imprimir?</p>
+    <div class="fila-botones" id="quizArchivo">
+      <button class="btn-secundario" data-ok="no">📄 carta.docx</button>
+      <button class="btn-secundario" data-ok="si">🧊 soporte-movil.stl</button>
+      <button class="btn-secundario" data-ok="no">🖼️ foto.jpg</button>
+    </div>
+    <div class="resultado" id="resArchivo"></div>
+  </section>
+
+  <!-- ===== PASO 3: Impresora, placa y filamento ===== -->
+  <section class="paso" data-titulo="Configurar">
+    <h2><span class="icono">⚙️</span> Impresora, placa y filamento</h2>
+    <p>En la columna de la <b>izquierda</b> hay tres menús. Hay que decirle al programa qué máquina tienes, sobre qué placa imprimes y qué plástico (filamento) usas.</p>
+    <div class="simulador">
+      <div class="sim-barra"><span>Bambu Studio</span><span class="pestana on">Preparar</span><span class="pestana">Previsualizar</span><span class="pestana">Dispositivo</span></div>
+      <div class="sim-cuerpo">
+        <label for="selImpresora">🖨️ Impresora</label>
+        <select id="selImpresora">
+          <option value="">— Elige —</option>
+          <option value="x1">Bambu Lab X1 Carbon 0.4 nozzle</option>
+          <option value="ok">Bambu Lab A1 mini 0.4 nozzle</option>
+          <option value="a1">Bambu Lab A1 0.4 nozzle</option>
+        </select>
+        <label for="selPlaca">🟫 Tipo de placa</label>
+        <select id="selPlaca">
+          <option value="">— Elige —</option>
+          <option value="ok">Textured PEI Plate (placa texturizada)</option>
+          <option value="cool">Cool Plate</option>
+        </select>
+        <label for="selFilamento">🧵 Filamento</label>
+        <select id="selFilamento">
+          <option value="">— Elige —</option>
+          <option value="ok">Bambu PLA Basic</option>
+          <option value="petg">Bambu PETG HF</option>
+          <option value="abs">Bambu ABS</option>
+        </select>
+        <button class="btn-azul comprobar" id="btnConfig">✔️ Comprobar</button>
+        <div class="resultado" id="resConfig"></div>
+      </div>
+    </div>
+    <div class="nota">💡 Normalmente se elige una vez y el programa lo recuerda. Solo hay que cambiarlo si pones otro filamento u otra placa.</div>
+  </section>
+
+  <!-- ===== PASO 4: Colocar la pieza ===== -->
+  <section class="paso" data-titulo="Colocar la pieza">
+    <h2><span class="icono">🧭</span> Colocar bien la pieza</h2>
+    <p>La pieza debe apoyarse sobre su <b>cara más ancha y plana</b>, como una mesa sobre sus patas. Así se pega mejor y casi no necesita soportes.</p>
+    <p>En la barra de herramientas de arriba tienes: <b>Mover</b> (<kbd>M</kbd>), <b>Rotar</b> (<kbd>R</kbd>), <b>Escalar</b> (<kbd>S</kbd>), <b>Apoyar en cara</b> (<kbd>F</kbd>), <b>Orientación automática</b> y <b>Organizar</b> (<kbd>A</kbd>).</p>
+    <p><b>Practica:</b> esta pieza está de pie y se caería. Gírala hasta que quede tumbada.</p>
+    <div class="simulador">
+      <div class="sim-barra"><span class="pestana on">Preparar</span><span>Placa 1</span></div>
+      <div class="sim-cuerpo">
+        <div class="placa"><div class="pieza" id="pieza">Pieza</div></div>
+        <div class="fila-botones">
+          <button class="btn-secundario" id="btnRotar">🔄 Rotar 90°</button>
+          <button class="btn-secundario" id="btnAuto">✨ Orientación automática</button>
+        </div>
+        <div class="resultado" id="resPieza"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PASO 5: Calidad y soportes ===== -->
+  <section class="paso" data-titulo="Calidad y soportes">
+    <h2><span class="icono">🎚️</span> Calidad, relleno y soportes</h2>
+    <p>En la parte izquierda, debajo, está el <b>proceso</b>. Para empezar, deja el perfil <b>0.20mm Standard</b>: es el equilibrio entre calidad y rapidez.</p>
+    <ul class="lista">
+      <li>🧱 <b>Relleno</b>: lo de dentro de la pieza. Un 15 % basta para casi todo; para piezas que aguantan peso, sube a 25-40 %.</li>
+      <li>🪜 <b>Soportes</b>: andamios que el programa añade bajo las partes «en el aire». Luego se quitan a mano.</li>
+    </ul>
+    <p><b>Practica:</b> vas a imprimir una figura con los <b>brazos extendidos</b>. ¿Qué haces con los soportes?</p>
+    <div class="fila-botones" id="quizSoportes">
+      <button class="btn-secundario" data-ok="si">✅ Activarlos</button>
+      <button class="btn-secundario" data-ok="no">❌ Dejarlos apagados</button>
+    </div>
+    <div class="resultado" id="resSoportes"></div>
+  </section>
+
+  <!-- ===== PASO 6: Laminar ===== -->
+  <section class="paso" data-titulo="Laminar">
+    <h2><span class="icono">🔪</span> Laminar la placa</h2>
+    <p>Arriba a la derecha está el botón <b>«Laminar placa»</b> (en inglés, <i>Slice plate</i>). Al pulsarlo, el programa corta la pieza en capas y pasa solo a la pestaña <b>Previsualizar</b>, donde ves el tiempo y el filamento que gastará.</p>
+    <div class="simulador">
+      <div class="sim-barra"><span class="pestana on" id="pestPrep">Preparar</span><span class="pestana" id="pestPrev">Previsualizar</span></div>
+      <div class="sim-cuerpo">
+        <button class="btn-principal" id="btnLaminar">🔪 Laminar placa</button>
+        <div class="cargando" id="carga" hidden><div></div></div>
+        <div id="datosLaminado" hidden>
+          <div class="datos">
+            <div class="dato">⏱️ Tiempo<b>1 h 25 min</b></div>
+            <div class="dato">🧵 Filamento<b>18,4 g</b></div>
+            <div class="dato">📏 Capas<b>215</b></div>
+          </div>
+          <div class="resultado bien">¡Laminado! Revisa en la vista previa que no haya nada raro, como partes flotando.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== PASO 7: Enviar a la impresora ===== -->
+  <section class="paso" data-titulo="Enviar">
+    <h2><span class="icono">📡</span> Enviar a la impresora</h2>
+    <div class="nota">🧹 <b>Antes de nada:</b> la placa tiene que estar <b>limpia y vacía</b>, sin restos de la impresión anterior.</div>
+    <p>Pulsa <b>«Imprimir placa»</b> (arriba a la derecha). Se abre una ventana con casillas. Marca las recomendadas:</p>
+    <div class="simulador">
+      <div class="sim-barra"><span>Enviar trabajo de impresión</span></div>
+      <div class="sim-cuerpo">
+        <label for="selDisp">Impresora de destino</label>
+        <select id="selDisp"><option>Mi A1 mini (en línea ✅)</option></select>
+        <div class="opcion"><input type="checkbox" id="chkNivel"><label for="chkNivel">📐 <b>Nivelación de la cama</b> — mide la placa para que la primera capa salga perfecta (recomendado)</label></div>
+        <div class="opcion"><input type="checkbox" id="chkFlujo"><label for="chkFlujo">🌊 <b>Calibración de flujo</b> — ajusta la salida del plástico; útil con un filamento nuevo</label></div>
+        <div class="opcion"><input type="checkbox" id="chkTime"><label for="chkTime">🎬 <b>Timelapse</b> — vídeo acelerado de la impresión (opcional)</label></div>
+        <button class="btn-principal comprobar" id="btnEnviar">📤 Enviar</button>
+        <div class="resultado" id="resEnviar"></div>
+      </div>
+    </div>
+    <p><b>¿Sin wifi?</b> 💾 Usa la tarjeta <b>microSD</b>: en la flecha junto a «Imprimir placa», elige <b>Exportar archivo laminado</b>, guárdalo en la tarjeta, métela en la impresora y elige el archivo en su pantalla.</p>
+  </section>
+
+  <!-- ===== PASO 8: Seguir la impresión y repaso ===== -->
+  <section class="paso" data-titulo="Seguir la impresión">
+    <h2><span class="icono">👀</span> Seguir la impresión y repaso</h2>
+    <p>Como la impresora no está junto al ordenador, puedes vigilarla a distancia:</p>
+    <ul class="lista">
+      <li>💻 En Bambu Studio, pestaña <b>Dispositivo</b>: verás el avance, las temperaturas y la cámara.</li>
+      <li>📱 En el iPhone, la app <b>Bambu Handy</b>: lo mismo desde el bolsillo, y te avisa al terminar.</li>
+    </ul>
+    <div class="nota">🔎 Mira sobre todo la <b>primera capa</b> (los primeros minutos). Si se despega o sale «espaguetis», detén la impresión y revisa la placa.</div>
+    <p><b>Lista para la próxima vez</b> (marca cada punto):</p>
+    <div id="repaso">
+      <div class="opcion"><input type="checkbox" id="r1"><label for="r1">📂 Abrí el modelo (.stl o .3mf)</label></div>
+      <div class="opcion"><input type="checkbox" id="r2"><label for="r2">⚙️ A1 mini, placa texturizada y filamento correctos</label></div>
+      <div class="opcion"><input type="checkbox" id="r3"><label for="r3">🧭 Pieza tumbada sobre su cara plana</label></div>
+      <div class="opcion"><input type="checkbox" id="r4"><label for="r4">🪜 Soportes si hay partes en el aire</label></div>
+      <div class="opcion"><input type="checkbox" id="r5"><label for="r5">🔪 Laminé y revisé la vista previa</label></div>
+      <div class="opcion"><input type="checkbox" id="r6"><label for="r6">🧹 Placa limpia y enviado con nivelación</label></div>
+    </div>
+    <div class="resultado" id="resRepaso"></div>
+  </section>
+
+  <!-- ===== Botones de navegación ===== -->
+  <nav class="navegacion">
+    <button class="btn-secundario" id="btnAtras">◀ Atrás</button>
+    <button class="btn-principal" id="btnSiguiente">Siguiente ▶</button>
+  </nav>
+</div>
+
+<script>
+/* ===== Navegación entre pasos ===== */
+const pasos = document.querySelectorAll('.paso');
+let actual = 0;
+function mostrar(n){
+  pasos.forEach((p,i)=>p.classList.toggle('activo', i===n));
+  document.getElementById('textoPaso').textContent =
+    'Paso ' + (n+1) + ' de ' + pasos.length + ' · ' + pasos[n].dataset.titulo;
+  document.getElementById('barra').style.width = ((n+1)/pasos.length*100) + '%';
+  document.getElementById('btnAtras').disabled = (n===0);
+  document.getElementById('btnSiguiente').textContent =
+    (n===pasos.length-1) ? '🔁 Empezar de nuevo' : 'Siguiente ▶';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+document.getElementById('btnSiguiente').onclick = ()=>{
+  actual = (actual===pasos.length-1) ? 0 : actual+1; mostrar(actual);
+};
+document.getElementById('btnAtras').onclick = ()=>{ if(actual>0){actual--; mostrar(actual);} };
+
+/* ===== Ayuda: mostrar un mensaje de acierto o error ===== */
+function mensaje(id, ok, texto){
+  const el = document.getElementById(id);
+  el.className = 'resultado ' + (ok ? 'bien' : 'mal');
+  el.innerHTML = texto;
+}
+
+/* ===== Paso 2: ¿qué archivo se abre? ===== */
+document.querySelectorAll('#quizArchivo button').forEach(b=>{
+  b.onclick = ()=> b.dataset.ok==='si'
+    ? mensaje('resArchivo', true, '✅ ¡Correcto! Los archivos <b>.stl</b> y <b>.3mf</b> son modelos 3D.')
+    : mensaje('resArchivo', false, '❌ Ese no es un modelo 3D. Busca el que termina en <b>.stl</b>.');
+});
+
+/* ===== Paso 3: comprobar la configuración ===== */
+document.getElementById('btnConfig').onclick = ()=>{
+  const imp = selImpresora.value, pla = selPlaca.value, fil = selFilamento.value;
+  if(imp==='ok' && pla==='ok' && fil==='ok'){
+    mensaje('resConfig', true, '✅ ¡Perfecto! Esa es la configuración habitual de tu A1 mini.');
+  } else {
+    let fallos = [];
+    if(imp!=='ok') fallos.push('la impresora debe ser la <b>A1 mini</b>');
+    if(pla!=='ok') fallos.push('la placa que trae la A1 mini es la <b>texturizada (Textured PEI)</b>');
+    if(fil!=='ok') fallos.push('para empezar, lo más fácil es el <b>PLA Basic</b>');
+    mensaje('resConfig', false, '🤔 Casi: ' + fallos.join('; ') + '.');
+  }
+};
+
+/* ===== Paso 4: girar la pieza ===== */
+let giro = 90; // empieza "de pie"
+const pieza = document.getElementById('pieza');
+function dibujarPieza(){
+  pieza.style.transform = 'rotate(' + giro + 'deg)';
+  if(giro % 180 === 0){
+    mensaje('resPieza', true, '✅ ¡Muy bien! Ahora está tumbada sobre su cara ancha y será estable.');
+  } else {
+    mensaje('resPieza', false, '⚠️ Así está de pie: es inestable. Sigue girando.');
+  }
+}
+document.getElementById('btnRotar').onclick = ()=>{ giro = (giro + 90) % 360; dibujarPieza(); };
+document.getElementById('btnAuto').onclick  = ()=>{ giro = 0; dibujarPieza(); };
+pieza.style.transform = 'rotate(90deg)';
+
+/* ===== Paso 5: soportes ===== */
+document.querySelectorAll('#quizSoportes button').forEach(b=>{
+  b.onclick = ()=> b.dataset.ok==='si'
+    ? mensaje('resSoportes', true, '✅ ¡Eso es! Los brazos están en el aire y sin soportes el plástico caería. Activa <b>Habilitar soportes</b> en la pestaña <b>Soporte</b>.')
+    : mensaje('resSoportes', false, '❌ Sin soportes, los brazos se imprimirían «en el aire» y el plástico se descolgaría.');
+});
+
+/* ===== Paso 6: laminar (simulado) ===== */
+document.getElementById('btnLaminar').onclick = function(){
+  this.disabled = true;
+  const carga = document.getElementById('carga');
+  carga.hidden = false;
+  setTimeout(()=>carga.firstElementChild.style.width='100%', 30);
+  setTimeout(()=>{
+    carga.hidden = true;
+    document.getElementById('datosLaminado').hidden = false;
+    document.getElementById('pestPrep').classList.remove('on');
+    document.getElementById('pestPrev').classList.add('on');
+    this.disabled = false;
+    this.textContent = '🔪 Volver a laminar';
+  }, 1700);
+};
+
+/* ===== Paso 7: enviar (simulado) ===== */
+document.getElementById('btnEnviar').onclick = ()=>{
+  if(!chkNivel.checked){
+    mensaje('resEnviar', false, '⚠️ Te recomiendo marcar <b>Nivelación de la cama</b>: solo tarda unos minutos y evita fallos.');
+  } else {
+    mensaje('resEnviar', true, '✅ ¡Enviado! La impresora calentará, nivelará y empezará a imprimir.');
+  }
+};
+
+/* ===== Paso 8: lista de repaso ===== */
+document.querySelectorAll('#repaso input').forEach(c=>{
+  c.onchange = ()=>{
+    const marcadas = document.querySelectorAll('#repaso input:checked').length;
+    if(marcadas===6) mensaje('resRepaso', true, '🎉 ¡Enhorabuena, Toño! Ya sabes preparar una impresión de principio a fin.');
+    else document.getElementById('resRepaso').className = 'resultado';
+  };
+});
+
+mostrar(0);
+</script>
+</body>
+</html>
